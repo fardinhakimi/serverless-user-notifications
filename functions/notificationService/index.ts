@@ -1,6 +1,5 @@
 import { SQSEvent, Context } from 'aws-lambda'
 
-// 
 export const notificationHandler = async (event: SQSEvent, context: Context) => {
 
     try {

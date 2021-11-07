@@ -1,0 +1,39 @@
+name: Build and Deploy Docker image to DockerHub
+
+on:
+  push:
+    branches: [ main ]
+jobs:
+
+  test:  
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - run: npm run test
+
+  configure:
+    needs: [test]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        role-to-assume: arn:aws:iam::${{secrets.CDK_DEPLOY_ACCOUNT}}:role/github-actions
+        aws-region: ${{secrets.CDK_DEPLOY_REGION}}
+
+  deploy:
+    needs: [configure]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: deploy
+      env:
+        CDK_DEPLOY_REGION: ${{secrets.CDK_DEPLOY_REGION}}
+        CDK_DEPLOY_ACCOUNT: ${{secrets.CDK_DEPLOY_ACCOUNT}}
+        CDK_DEPLOY_STAGE: prod
+
+    - run: npm run deploy
