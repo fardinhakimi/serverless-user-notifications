@@ -20,7 +20,7 @@ jobs:
 
     steps:
     - name: Configure AWS Credentials
-    - uses: aws-actions/configure-aws-credentials@v1
+      uses: aws-actions/configure-aws-credentials@v1
       with:
         role-to-assume: arn:aws:iam::${{secrets.CDK_DEPLOY_ACCOUNT}}:role/github-actions
         aws-region: ${{secrets.CDK_DEPLOY_REGION}}
@@ -31,7 +31,7 @@ jobs:
 
     steps:
     - name: deploy
-    - run: npm run deploy
+      run: npm run deploy
       env:
         CDK_DEPLOY_REGION: ${{secrets.CDK_DEPLOY_REGION}}
         CDK_DEPLOY_ACCOUNT: ${{secrets.CDK_DEPLOY_ACCOUNT}}
