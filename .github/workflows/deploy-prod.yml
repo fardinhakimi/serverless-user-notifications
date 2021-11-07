@@ -16,17 +16,21 @@ jobs:
       - run: npm run test
 
   configure:
-    needs: [test]
+
+    permissions:
+      id-token: write
+      contents: read
+
     runs-on: ubuntu-latest
 
     steps:
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
-        role-to-assume: arn:aws:iam::${{secrets.CDK_DEPLOY_ACCOUNT}}:role/github-actions
+        role-to-assume: arn:aws:iam::${{secrets.CDK_DEPLOY_ACCOUNT}}:role/github-actions-role
         aws-region: ${{secrets.CDK_DEPLOY_REGION}}
   deploy:
-    needs: [configure]
+    needs: [test]
     runs-on: ubuntu-latest
 
     steps:
