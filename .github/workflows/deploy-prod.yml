@@ -29,6 +29,8 @@ jobs:
       with:
         role-to-assume: arn:aws:iam::${{secrets.CDK_DEPLOY_ACCOUNT}}:role/github-actions-role
         aws-region: ${{secrets.CDK_DEPLOY_REGION}}
+        role-session-name: GitHubActions
+        
   deploy:
     needs: [test]
     runs-on: ubuntu-latest
