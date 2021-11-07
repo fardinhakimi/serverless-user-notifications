@@ -13,7 +13,7 @@ jobs:
         with:
           node-version: '14'
       - run: npm ci
-      - run: npm run test
+      #- run: npm run test
 
   configure:
 
@@ -37,7 +37,7 @@ jobs:
 
     steps:
     - name: deploy
-      run: npm run deploy
+      run:  cdk deploy
       env:
         CDK_DEPLOY_REGION: ${{secrets.CDK_DEPLOY_REGION}}
         CDK_DEPLOY_ACCOUNT: ${{secrets.CDK_DEPLOY_ACCOUNT}}
