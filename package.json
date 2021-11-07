@@ -9,7 +9,7 @@
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
-    "deploy": "cdk deploy --force",
+    "deploy": "cdk deploy --require-approval never",
     "destroy": "cdk destroy",
     "postinstall:order-service": "npm ci --prefix functions/orderService",
     "postinstall:notification-service": "npm ci --prefix functions/notificationService",
