@@ -1,11 +1,14 @@
-name: Build and Deploy Docker image to DockerHub
+name: deploy to prod
 
 on:
   push:
     branches: [ main ]
 jobs:
 
-  test:  
+  deploy:
+    permissions:
+      id-token: write
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -15,32 +18,18 @@ jobs:
       - run: npm ci
       #- run: npm run test
 
-  configure:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          role-to-assume: arn:aws:iam::${{secrets.CDK_DEPLOY_ACCOUNT}}:role/github-actions-role
+          aws-region: ${{secrets.CDK_DEPLOY_REGION}}
+          role-session-name: GitHubActions
 
-    permissions:
-      id-token: write
-      contents: read
-
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@master
-      with:
-        role-to-assume: arn:aws:iam::${{secrets.CDK_DEPLOY_ACCOUNT}}:role/github-actions-role
-        aws-region: ${{secrets.CDK_DEPLOY_REGION}}
-        role-session-name: GitHubActions
-
-  deploy:
-    needs: [test]
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: deploy
-      run:  cdk deploy
-      env:
-        CDK_DEPLOY_REGION: ${{secrets.CDK_DEPLOY_REGION}}
-        CDK_DEPLOY_ACCOUNT: ${{secrets.CDK_DEPLOY_ACCOUNT}}
-        CDK_DEPLOY_STAGE: prod
+      - name: deploy
+        run:  cdk deploy
+        env:
+          CDK_DEPLOY_REGION: ${{secrets.CDK_DEPLOY_REGION}}
+          CDK_DEPLOY_ACCOUNT: ${{secrets.CDK_DEPLOY_ACCOUNT}}
+          CDK_DEPLOY_STAGE: prod
 
     
