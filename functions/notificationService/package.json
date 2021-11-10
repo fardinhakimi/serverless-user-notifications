@@ -10,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/aws-lambda": "^8.10.85"
+    "@sendgrid/mail": "^7.6.0",
+    "@types/aws-lambda": "^8.10.85",
+    "aws-sdk": "^2.1026.0"
   }
 }
