@@ -11,7 +11,10 @@
   "license": "ISC",
   "dependencies": {
     "@sendgrid/mail": "^7.6.0",
-    "@types/aws-lambda": "^8.10.85",
-    "aws-sdk": "^2.1026.0"
+    "aws-sdk": "^2.1026.0",
+    "email-validator": "^2.0.4"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.85"
   }
 }

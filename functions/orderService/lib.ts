@@ -1,46 +1,56 @@
-import { APIGatewayProxyEvent } from 'aws-lambda'
 import * as AWS from 'aws-sdk'
+import { v4 as uuidv4 } from 'uuid'
 
-
-export function createErrorResponse(body = 'Something went wrong', statusCode = 500) {
+export const createErrorResponse = (body = 'Something went wrong', statusCode = 500) => {
     return {
         statusCode,
         body
     }
 }
 
-export async function notifyUser() {
+export const notifyUser = async (emailNotification: OrderService.EmailNotifcation) => {
 
     console.log('Notifying user ...')
 
     const notificationsTopicArn = process.env.NOTIFICATIONS_TOPIC_ARN
 
-    return new AWS.SNS().publish({ MessageGroupId: 'group1',  TopicArn: notificationsTopicArn, Message: JSON.stringify({
-        email: 'send a virus to this sucker!'
-    })}).promise()
-
+    if(!notificationsTopicArn) throw new Error('NOTIFICATIONS_TOPIC_ARN env var is missing')
+    
+    await new AWS.SNS().publish({ MessageGroupId: 'group1',  TopicArn: notificationsTopicArn, Message: JSON.stringify(
+        emailNotification
+    )}).promise()
 }
 
 
-export async function saveOrUpdateOrder(event: APIGatewayProxyEvent) {
+export const getOrderById = (id: string) => {
+
+}
+export const createOrUpdateOrder = async ({ item, customer }: OrderService.OrderInput): Promise<string> => {
 
     const ordersTable = process.env.ORDERS_TABLE
 
-    if(!ordersTable) throw new Error('ORDERS_TABLE is missing!')
-
-    const { id, item } = JSON.parse(event.body || '')
-
-    if(!id || !item) throw new Error('username and item is required')
+    if(!ordersTable) throw new Error('ORDERS_TABLE env var is missing')
 
     const dynamoDb = new AWS.DynamoDB.DocumentClient()
 
-    console.debug('Saving or updating the order ...')
+    console.log('Saving or updating the order ...')
+    console.log(item)
 
-    return dynamoDb.put({
+    const id = uuidv4()
+
+    await dynamoDb.put({
         TableName: ordersTable,
         Item: {
             id,
-            item
+            item,
+            customerId: customer.customerId
         }
     }).promise()
+
+    const order = await dynamoDb.get({
+        TableName: ordersTable,
+        Key: { id }
+    }).promise()
+
+    return order?.Item?.id
 }

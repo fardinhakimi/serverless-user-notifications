@@ -6,9 +6,15 @@ import * as snsSubscriptions from '@aws-cdk/aws-sns-subscriptions'
 import * as sqs from '@aws-cdk/aws-sqs'
 import * as lambdaEventSources from '@aws-cdk/aws-lambda-event-sources'
 import * as dynamoDb from '@aws-cdk/aws-dynamodb'
+import * as secretsManager from '@aws-cdk/aws-secretsmanager'
 import { join } from 'path'
 import { Runtime } from '@aws-cdk/aws-lambda'
-import { Duration } from '@aws-cdk/core'
+import { Duration, RemovalPolicy } from '@aws-cdk/core'
+
+type Config = Record<string, { 
+  secretArn: string
+  verifiedSender: string
+}>
 
 
 export class OrderServiceStack extends cdk.Stack {
@@ -23,14 +29,15 @@ export class OrderServiceStack extends cdk.Stack {
 
     const ordersTable = new dynamoDb.Table(this, `${stage}OrdersTable`, {
       tableName: 'OrdersTable',
-      partitionKey: { name: 'id', type: dynamoDb.AttributeType.STRING}
+      partitionKey: { name: 'id', type: dynamoDb.AttributeType.STRING},
+      removalPolicy: RemovalPolicy.DESTROY
     })
 
     // Create SNS topic
 
-    const notificationsTopic = new sns.Topic(this, `${stage}notificationsTopic`, {
-      displayName: 'notificationsTopic',
-      topicName: 'notificationsTopic',
+    const orderCreatedTopic = new sns.Topic(this, `${stage}orderCreatedTopic`, {
+      displayName: 'orderCreatedTopic',
+      topicName: 'orderCreatedTopic',
       contentBasedDeduplication: true,
       fifo: true
     })
@@ -47,8 +54,13 @@ export class OrderServiceStack extends cdk.Stack {
 
     // Subscribe queue to SNS topic 
 
-    notificationsTopic.addSubscription( new snsSubscriptions.SqsSubscription(notificationsQueue))
+    orderCreatedTopic.addSubscription( new snsSubscriptions.SqsSubscription(notificationsQueue))
 
+    // Get config for current stage
+
+    const config = this.node.tryGetContext(props?.env?.account!) as Config
+
+    const secret = secretsManager.Secret.fromSecretCompleteArn(this, `${stage}-notifications-secrets`, config[stage].secretArn)
 
     // Create notificationsHandlerLambda
 
@@ -56,8 +68,13 @@ export class OrderServiceStack extends cdk.Stack {
       runtime: Runtime.NODEJS_14_X,
       entry: join(functionsPath, 'notificationService/index.ts'),
       handler: 'notificationHandler',
+      environment: {
+        NOTIFICATION_SECRET_NAME: secret.secretName,
+        VERIFIED_SENDER:  config[stage].verifiedSender
+      }
     })
 
+    secret.grantRead(notificationsHandlerLambda)
     notificationsHandlerLambda.addEventSource( new lambdaEventSources.SqsEventSource(notificationsQueue))
 
 
@@ -69,22 +86,26 @@ export class OrderServiceStack extends cdk.Stack {
       handler: 'orderHandler',
       environment: {
         ORDERS_TABLE: ordersTable.tableName,
-        NOTIFICATIONS_TOPIC_ARN: notificationsTopic.topicArn
+        NOTIFICATIONS_TOPIC_ARN: orderCreatedTopic.topicArn
       }
     })
 
-    // give the lambda the right permissions to the sns topic and the dynamodb table
+    // Give orderHandler the right permissions to the sns topic and the dynamodb table
     ordersTable.grantReadWriteData(orderHandler)
-    notificationsTopic.grantPublish(orderHandler)
+    orderCreatedTopic.grantPublish(orderHandler)
 
-    // Create a rest api
+    // Create a LambdaRestApi rest api as point of entry to create orders
 
     const api = new apigateway.LambdaRestApi(this, 'myapi', {
       handler: orderHandler,
-      proxy: false
+      proxy: false,
+      deployOptions: {
+        stageName: stage
+      }
     })
 
     const orders = api.root.addResource('orders')
+
     orders.addMethod('POST')
 
   }

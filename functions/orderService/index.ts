@@ -1,14 +1,19 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda'
-import { saveOrUpdateOrder, notifyUser, createErrorResponse } from './lib'
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
+import { createOrUpdateOrder, notifyUser, createErrorResponse } from './lib'
 
-export const orderHandler = async (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> => {
+export const orderHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
 
     try {
 
-        if(event.httpMethod !== 'POST') throw new Error('Only http post is supported')
+        if(event.httpMethod !== 'POST') throw new Error('Unsupported operation encountered')
 
-        await saveOrUpdateOrder(event)
-        await notifyUser()
+        const orderInput = JSON.parse(event.body || '') as OrderService.OrderInput
+
+        if(!orderInput?.item || !orderInput?.customer) throw new Error('item and customer info is required to make an order')
+
+        const orderId = await createOrUpdateOrder(orderInput)
+        
+        await notifyUser({ email: orderInput.customer.email, orderId})
       
         return {
             statusCode: 201,

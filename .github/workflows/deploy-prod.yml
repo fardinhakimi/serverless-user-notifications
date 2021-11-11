@@ -26,7 +26,7 @@ jobs:
           role-session-name: GitHubActions
 
       - name: deploy
-        run:  npm run deploy
+       # run:  npm run deploy. Note: disabled for now!
         env:
           CDK_DEPLOY_REGION: ${{secrets.CDK_DEPLOY_REGION}}
           CDK_DEPLOY_ACCOUNT: ${{secrets.CDK_DEPLOY_ACCOUNT}}
