@@ -21,10 +21,6 @@ export const notifyUser = async (emailNotification: OrderService.EmailNotifcatio
     )}).promise()
 }
 
-
-export const getOrderById = (id: string) => {
-
-}
 export const createOrUpdateOrder = async ({ item, customer }: OrderService.OrderInput): Promise<string> => {
 
     const ordersTable = process.env.ORDERS_TABLE
