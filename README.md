@@ -2,7 +2,7 @@
 <!-- ABOUT THE PROJECT -->
 ## Serverless architecture for asynchronous user notifications.
 
-The purpose of this application is to experiment with serverless on AWS using AWS CDK. the focus is not on the correctness of business logic.
+The purpose of this application is to experiment with serverless on AWS using AWS CDK. The focus is not on the correctness of business logic.
 
 ### Developed With
 
@@ -14,9 +14,9 @@ This program is developed on top of:
 * AWS services ( Lambda, SNS, SQS, Api gateway, Dynamodb, secrets manager)
 
 ### Installation
-1. install [aws cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) on your machine
-2. run aws configure to set up your account
-3. update cdk.json's context with your own account, stage, secretArn and verifiedSender
+1. Install [aws cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) on your machine
+2. Run aws configure to set up your account
+3. Update cdk.json's context with your own account, stage, secretArn and verifiedSender
 4. Install dependencies
    ```sh
    npm install
@@ -31,7 +31,7 @@ This program is developed on top of:
    ```sh
    cdk ls
    ```
-7. if this is your first deployment of a cdk stack on your given account run
+7. If this is your first deployment of a cdk stack on your given account run
    ```sh
    cdk bootstrap
    ```
